@@ -56,7 +56,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
@@ -74,10 +74,10 @@
       const events = [];
       const snapshot = await getDocs(collection(db, "events"));
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        console.log("Loaded Event:", data);
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
         events.push({
+          id: docSnap.id,  // Save document ID for deletion
           title: data.title || "Untitled",
           start: data.startDateTime,
           end: data.endDateTime || null,
@@ -98,12 +98,14 @@
         },
         events: events,
         height: "100%",
+
         eventMouseEnter: function(info) {
           popup.innerHTML = `
             <strong>${info.event.title}</strong><br/>
             ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
             ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
             <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
+            <button style="margin-top:10px;padding:6px 10px;border:none;background:#d9534f;color:white;border-radius:5px;cursor:pointer;" onclick="deleteEvent('${info.event.id}')">Delete</button>
           `;
           popup.style.display = "block";
           popup.style.top = `${info.jsEvent.pageY + 10}px`;
@@ -115,10 +117,23 @@
       });
 
       calendar.render();
+
+      // Make deleteEvent function globally accessible
+      window.deleteEvent = async function(eventId) {
+        if (confirm("Are you sure you want to delete this event?")) {
+          try {
+            await deleteDoc(doc(db, "events", eventId));
+            alert("Event deleted.");
+            calendar.refetchEvents(); // Refresh calendar
+          } catch (error) {
+            alert("Error deleting event.");
+            console.error(error);
+          }
+        }
+      };
     }
 
     document.addEventListener("DOMContentLoaded", loadCalendar);
   </script>
 </body>
 </html>
-
