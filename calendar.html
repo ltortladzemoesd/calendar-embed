@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calendar</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+  <style>
+    body {
+      background-color: #CCD0CF;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #calendar {
+      max-width: 900px;
+      margin: auto;
+    }
+    .fc {
+      background-color: #CCD0CF;
+    }
+    .fc-daygrid-event {
+      background-color: #36454F !important;
+      color: white !important;
+      font-weight: bold;
+      border: none;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .fc-day-today {
+      background-color: #9BA8AB !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="calendar"></div>
+
+  <!-- Firebase & Calendar Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
+      authDomain: "calendarapp-8ec62.firebaseapp.com",
+      projectId: "calendarapp-8ec62",
+      storageBucket: "calendarapp-8ec62.appspot.com",
+      messagingSenderId: "899658553643",
+      appId: "1:899658553643:web:c94eef191af72b04610d6e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calendarEl = document.getElementById('calendar');
+
+      // Fetch events from Firestore
+      const querySnapshot = await getDocs(collection(db, "events"));
+      const events = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+
+        // Parse DDMMYYYY HH:mm to ISO string
+        const match = data.endDateTime.match(/^(\d{2})(\d{2})(\d{4})\s+(\d{2}):(\d{2})$/);
+        if (match) {
+          const isoString = `${match[3]}-${match[2]}-${match[1]}T${match[4]}:${match[5]}`;
+          events.push({
+            title: data.title,
+            start: isoString
+          });
+        }
+      });
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        height: "auto",
+        events: events
+      });
+
+      calendar.render();
+    });
+  </script>
+
+</body>
+</html>
