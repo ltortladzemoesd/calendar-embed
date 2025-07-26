@@ -76,7 +76,7 @@
 
       snapshot.forEach((doc) => {
         const data = doc.data();
-        console.log("Loaded Event:", data); // DEBUG
+        console.log("Loaded Event:", data);
         events.push({
           title: data.title || "Untitled",
           start: data.startDateTime,
@@ -98,31 +98,23 @@
         },
         events: events,
         height: "100%",
-        eventClick: function(info) {
-          const event = info.event;
-          console.log("Clicked Event:", event); // DEBUG
-
+        eventMouseEnter: function(info) {
           popup.innerHTML = `
-            <strong>${event.title}</strong><br/>
-            <em>${event.start.toLocaleString()}</em><br/>
-            ${event.end ? `<em>to ${event.end.toLocaleString()}</em><br/>` : ""}
-            <p style="margin-top:10px;">${event.extendedProps.description}</p>
+            <strong>${info.event.title}</strong><br/>
+            ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
+            ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
+            <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
           `;
-
+          popup.style.display = "block";
           popup.style.top = `${info.jsEvent.pageY + 10}px`;
           popup.style.left = `${info.jsEvent.pageX + 10}px`;
-          popup.style.display = "block";
+        },
+        eventMouseLeave: function() {
+          popup.style.display = "none";
         }
       });
 
       calendar.render();
-
-      // Hide popup on outside click
-      document.addEventListener("click", (e) => {
-        if (!popup.contains(e.target)) {
-          popup.style.display = "none";
-        }
-      });
     }
 
     document.addEventListener("DOMContentLoaded", loadCalendar);
