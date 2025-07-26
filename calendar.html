@@ -25,6 +25,18 @@
       border-radius: 20px;
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     }
+
+    /* Wrap event text and style */
+    .fc-event {
+      white-space: normal !important;        /* wrap text */
+      background-color: #36454F !important;  /* dark grey-blue */
+      color: white !important;               /* white text */
+      font-weight: bold !important;
+      border: none !important;
+      padding: 2px 4px;
+      border-radius: 5px;
+      font-size: 0.85em;
+    }
   </style>
 </head>
 <body>
@@ -47,7 +59,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Wrap everything in an async function
+    // Load calendar with events
     async function loadCalendar() {
       const events = [];
 
@@ -66,7 +78,7 @@
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
-        firstDay: 1,
+        firstDay: 1, // Monday
         headerToolbar: {
           left: "prev,next today",
           center: "title",
@@ -78,7 +90,7 @@
       calendar.render();
     }
 
-    // Load the calendar once the DOM is ready
+    // Load calendar after DOM is ready
     document.addEventListener("DOMContentLoaded", loadCalendar);
   </script>
 </body>
