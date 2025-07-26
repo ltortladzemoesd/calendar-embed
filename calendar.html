@@ -72,14 +72,15 @@
 
     async function loadCalendar() {
       const events = [];
-
       const snapshot = await getDocs(collection(db, "events"));
+
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log("Loaded Event:", data); // DEBUG
         events.push({
           title: data.title || "Untitled",
           start: data.startDateTime,
-          end: data.endDateTime,
+          end: data.endDateTime || null,
           description: data.description || "",
         });
       });
@@ -99,22 +100,24 @@
         height: "100%",
         eventClick: function(info) {
           const event = info.event;
+          console.log("Clicked Event:", event); // DEBUG
 
           popup.innerHTML = `
-            <strong>${event.title}</strong><br>
-            <em>${event.start.toLocaleString()}</em><br>
-            ${event.end ? `<em>to ${event.end.toLocaleString()}</em><br>` : ""}
+            <strong>${event.title}</strong><br/>
+            <em>${event.start.toLocaleString()}</em><br/>
+            ${event.end ? `<em>to ${event.end.toLocaleString()}</em><br/>` : ""}
             <p style="margin-top:10px;">${event.extendedProps.description}</p>
           `;
 
-          popup.style.display = "block";
           popup.style.top = `${info.jsEvent.pageY + 10}px`;
           popup.style.left = `${info.jsEvent.pageX + 10}px`;
+          popup.style.display = "block";
         }
       });
 
       calendar.render();
 
+      // Hide popup on outside click
       document.addEventListener("click", (e) => {
         if (!popup.contains(e.target)) {
           popup.style.display = "none";
