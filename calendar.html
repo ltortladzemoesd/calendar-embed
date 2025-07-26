@@ -2,35 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calendar</title>
 
-  <!-- FullCalendar CSS -->
+  <!-- FullCalendar -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #d3d9d9;
+    html, body {
       margin: 0;
-      padding: 40px;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #d3dbdb;
     }
 
     #calendar {
-      max-width: 900px;
-      margin: 0 auto;
+      max-width: 100%;
+      margin: 40px auto;
       background: white;
       padding: 20px;
       border-radius: 20px;
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .fc-event-title {
+      white-space: normal !important;
     }
   </style>
 </head>
 <body>
   <div id="calendar"></div>
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -47,38 +52,63 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Wrap everything in an async function
-    async function loadCalendar() {
+    import { Calendar } from "https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js";
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calendarEl = document.getElementById('calendar');
+      const eventsCol = collection(db, "events");
+      const snapshot = await getDocs(eventsCol);
+
       const events = [];
 
-      const snapshot = await getDocs(collection(db, "events"));
-      snapshot.forEach((doc) => {
+      snapshot.forEach(doc => {
         const data = doc.data();
-        events.push({
-          title: data.title || "Untitled",
-          start: data.startDateTime,
-          end: data.endDateTime,
-          description: data.description || "",
-        });
+        if (data.title && data.endDateTime) {
+          const match = data.endDateTime.match(/^(\d{2})(\d{2})(\d{4}) (\d{2}):(\d{2})$/);
+          if (match) {
+            const [, day, month, year, hour, minute] = match;
+            const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
+            events.push({
+              title: data.title,
+              start: isoString,
+              extendedProps: {
+                description: data.description || "",
+                collaborators: data.collaborators || []
+              }
+            });
+          }
+        }
       });
 
-      const calendarEl = document.getElementById("calendar");
-
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
+      const calendar = new Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        firstDay: 1,
+        height: 'auto',
+        aspectRatio: 1.5,
+        expandRows: true,
         headerToolbar: {
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay"
+          left: 'prev,today,next',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         events: events,
+        eventClick: function(info) {
+          alert(
+            `📌 ${info.event.title}\n\n📝 ${info.event.extendedProps.description || "No description"}\n👥 ${info.event.extendedProps.collaborators.join(", ")}`
+          );
+        },
+        eventDidMount: function(info) {
+          const eventDate = info.event.startStr.split("T")[0];
+          const dayCell = document.querySelector(`.fc-daygrid-day[data-date="${eventDate}"]`);
+          if (dayCell) {
+            dayCell.style.backgroundColor = "#D7F2EC";
+            dayCell.style.borderRadius = "10px";
+          }
+        }
       });
 
       calendar.render();
-    }
-
-    // Load the calendar once the DOM is ready
-    document.addEventListener("DOMContentLoaded", loadCalendar);
+    });
   </script>
 </body>
 </html>
