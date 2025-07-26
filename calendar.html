@@ -10,27 +10,27 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
       font-family: Arial, sans-serif;
       background: #d3d9d9;
-      margin: 0;
-      padding: 40px;
     }
 
     #calendar {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
+      height: 100vh;
+      width: 100%;
       padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      background: white;
+      border-radius: 0;
+      box-shadow: none;
     }
 
-    /* Wrap event text and style */
     .fc-event {
-      white-space: normal !important;        /* wrap text */
-      background-color: #36454F !important;  /* dark grey-blue */
-      color: white !important;               /* white text */
+      white-space: normal !important;
+      background-color: #36454F !important;
+      color: white !important;
       font-weight: bold !important;
       border: none !important;
       padding: 2px 4px;
@@ -59,7 +59,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Load calendar with events
     async function loadCalendar() {
       const events = [];
 
@@ -78,19 +77,19 @@
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
-        firstDay: 1, // Monday
+        firstDay: 1,
         headerToolbar: {
           left: "prev,next today",
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
         events: events,
+        height: "100%",
       });
 
       calendar.render();
     }
 
-    // Load calendar after DOM is ready
     document.addEventListener("DOMContentLoaded", loadCalendar);
   </script>
 </body>
