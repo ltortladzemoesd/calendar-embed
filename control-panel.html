@@ -45,7 +45,6 @@
     <h2>Add New Event</h2>
     <input type="text" id="title" placeholder="Event Title" required />
     <textarea id="description" placeholder="Event Description"></textarea>
-    <input type="datetime-local" id="startDateTime" required />
     <input type="datetime-local" id="endDateTime" required />
     <input type="text" id="country" placeholder="Country" required />
     <textarea id="emails" placeholder="Collaborator Emails (comma-separated)"></textarea>
@@ -75,12 +74,11 @@
 
       const title = document.getElementById("title").value.trim();
       const description = document.getElementById("description").value.trim();
-      const startDateTime = document.getElementById("startDateTime").value;
       const endDateTime = document.getElementById("endDateTime").value;
       const country = document.getElementById("country").value.trim();
       const emails = document.getElementById("emails").value.trim();
 
-      if (!title || !startDateTime || !endDateTime || !country) {
+      if (!title || !endDateTime || !country) {
         alert("Please fill in all required fields.");
         return;
       }
@@ -89,7 +87,7 @@
         await addDoc(collection(db, "events"), {
           title,
           description,
-          startDateTime,
+          startDateTime: endDateTime, // Use end time as start
           endDateTime,
           country,
           collaborators: emails ? emails.split(",").map(email => email.trim()) : []
@@ -105,4 +103,5 @@
   </script>
 </body>
 </html>
+
 
