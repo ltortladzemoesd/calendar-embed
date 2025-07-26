@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calendar</title>
 
-  <!-- FullCalendar CSS -->
+  <!-- FullCalendar CSS & JS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
@@ -23,8 +23,6 @@
       width: 100%;
       padding: 20px;
       background: white;
-      border-radius: 0;
-      box-shadow: none;
     }
 
     .fc-event {
@@ -37,10 +35,23 @@
       border-radius: 5px;
       font-size: 0.85em;
     }
+
+    #eventPopup {
+      display: none;
+      position: absolute;
+      z-index: 9999;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      max-width: 300px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <div id="calendar"></div>
+  <div id="eventPopup"></div>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -74,6 +85,7 @@
       });
 
       const calendarEl = document.getElementById("calendar");
+      const popup = document.getElementById("eventPopup");
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
@@ -85,9 +97,29 @@
         },
         events: events,
         height: "100%",
+        eventClick: function(info) {
+          const event = info.event;
+
+          popup.innerHTML = `
+            <strong>${event.title}</strong><br>
+            <em>${event.start.toLocaleString()}</em><br>
+            ${event.end ? `<em>to ${event.end.toLocaleString()}</em><br>` : ""}
+            <p style="margin-top:10px;">${event.extendedProps.description}</p>
+          `;
+
+          popup.style.display = "block";
+          popup.style.top = `${info.jsEvent.pageY + 10}px`;
+          popup.style.left = `${info.jsEvent.pageX + 10}px`;
+        }
       });
 
       calendar.render();
+
+      document.addEventListener("click", (e) => {
+        if (!popup.contains(e.target)) {
+          popup.style.display = "none";
+        }
+      });
     }
 
     document.addEventListener("DOMContentLoaded", loadCalendar);
