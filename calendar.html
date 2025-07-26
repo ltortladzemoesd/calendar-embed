@@ -62,6 +62,11 @@
       color: white;
     }
 
+    #eventPopup .edit-btn {
+      background: #0275d8;
+      color: white;
+    }
+
     #eventPopup .close-btn {
       background: #999;
       color: white;
@@ -76,7 +81,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
@@ -142,6 +147,7 @@
             ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
             ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
             <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
+            <button class="edit-btn" onclick="editEvent('${info.event.id}', '${info.event.title}', '${info.event.extendedProps.description || ''}', '${info.event.end || ''}')">Edit</button>
             <button class="delete-btn" onclick="deleteEvent('${info.event.id}')">Delete</button>
             <button class="close-btn" onclick="closePopup()">Close</button>
           `;
@@ -153,13 +159,11 @@
 
       calendar.render();
 
-      // Add close handler globally
       window.closePopup = function() {
         popup.style.display = "none";
         popupPinned = false;
       };
 
-      // Add delete handler globally
       window.deleteEvent = async function(eventId) {
         try {
           await deleteDoc(doc(db, "events", eventId));
@@ -170,10 +174,29 @@
           alert("Failed to delete event.");
         }
       };
+
+      window.editEvent = async function(eventId, currentTitle, currentDescription, currentEnd) {
+        const newTitle = prompt("Edit title:", currentTitle);
+        if (newTitle === null) return;
+
+        const newDescription = prompt("Edit description:", currentDescription);
+        if (newDescription === null) return;
+
+        try {
+          await updateDoc(doc(db, "events", eventId), {
+            title: newTitle,
+            description: newDescription
+          });
+          alert("Event updated.");
+          location.reload();
+        } catch (err) {
+          console.error("Update failed:", err);
+          alert("Update failed.");
+        }
+      };
     }
 
     document.addEventListener("DOMContentLoaded", loadCalendar);
   </script>
 </body>
 </html>
-
