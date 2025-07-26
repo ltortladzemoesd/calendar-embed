@@ -106,6 +106,7 @@
           start: data.startDateTime,
           end: data.endDateTime || null,
           description: data.description || "",
+          country: data.country || ""
         });
       });
 
@@ -130,6 +131,7 @@
             ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
             ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
             <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
+            <p><strong>Country:</strong> ${info.event.extendedProps.country || "N/A"}</p>
           `;
           popup.style.display = "block";
           popup.style.top = `${info.jsEvent.pageY + 10}px`;
@@ -147,7 +149,8 @@
             ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
             ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
             <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
-            <button class="edit-btn" onclick="editEvent('${info.event.id}', '${info.event.title}', '${info.event.extendedProps.description || ''}', '${info.event.end || ''}')">Edit</button>
+            <p><strong>Country:</strong> ${info.event.extendedProps.country || "N/A"}</p>
+            <button class="edit-btn" onclick="editEvent('${info.event.id}', '${info.event.title}', '${info.event.extendedProps.description || ''}', '${info.event.end || ''}', '${info.event.extendedProps.country || ''}')">Edit</button>
             <button class="delete-btn" onclick="deleteEvent('${info.event.id}')">Delete</button>
             <button class="close-btn" onclick="closePopup()">Close</button>
           `;
@@ -175,17 +178,25 @@
         }
       };
 
-      window.editEvent = async function(eventId, currentTitle, currentDescription, currentEnd) {
+      window.editEvent = async function(eventId, currentTitle, currentDescription, currentEnd, currentCountry) {
         const newTitle = prompt("Edit title:", currentTitle);
         if (newTitle === null) return;
 
         const newDescription = prompt("Edit description:", currentDescription);
         if (newDescription === null) return;
 
+        const newEndDate = prompt("Edit end date/time (YYYY-MM-DDTHH:MM):", currentEnd);
+        if (newEndDate === null) return;
+
+        const newCountry = prompt("Edit country:", currentCountry);
+        if (newCountry === null) return;
+
         try {
           await updateDoc(doc(db, "events", eventId), {
             title: newTitle,
-            description: newDescription
+            description: newDescription,
+            endDateTime: newEndDate,
+            country: newCountry
           });
           alert("Event updated.");
           location.reload();
