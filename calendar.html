@@ -2,92 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calendar</title>
 
-  <!-- FullCalendar CSS -->
+  <!-- FullCalendar CSS & JS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #d3d9d9;
+    html, body {
       margin: 0;
       padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #d3d9d9;
     }
 
     #calendar {
-      max-width: 100%;
-      margin: 0 auto;
-      background: white;
+      height: 100vh;
+      width: 100%;
       padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      background: white;
     }
 
-    .fc-daygrid-event {
+    .fc-event {
+      white-space: normal !important;
       background-color: #36454F !important;
       color: white !important;
-      font-weight: bold;
-      white-space: normal !important;
+      font-weight: bold !important;
+      border: none !important;
+      padding: 2px 4px;
+      border-radius: 5px;
+      font-size: 0.85em;
     }
 
-    .fc .fc-daygrid-day-frame {
-      padding: 4px;
-    }
-
-    .popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+    #eventPopup {
+      display: none;
+      position: absolute;
       z-index: 9999;
-      width: 300px;
-      max-width: 80%;
-    }
-
-    .popup h3 {
-      margin-top: 0;
-    }
-
-    .popup button {
-      margin-top: 15px;
-      padding: 8px 15px;
-      border: none;
-      background: #36454F;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .popup-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 9998;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      max-width: 300px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <div id="calendar"></div>
-
-  <!-- Popup containers -->
-  <div id="popupOverlay" class="popup-overlay" style="display: none;"></div>
-  <div id="eventPopup" class="popup" style="display: none;">
-    <h3 id="popupTitle"></h3>
-    <p id="popupDescription"></p>
-    <p><strong>End Date:</strong> <span id="popupEndDate"></span></p>
-    <p><strong>Country:</strong> <span id="popupCountry"></span></p>
-    <button onclick="closePopup()">Close</button>
-  </div>
+  <div id="eventPopup"></div>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -108,50 +72,53 @@
 
     async function loadCalendar() {
       const events = [];
-
       const snapshot = await getDocs(collection(db, "events"));
+
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log("Loaded Event:", data);
         events.push({
           title: data.title || "Untitled",
-          start: data.endDateTime, // single date used
-          end: data.endDateTime,
+          start: data.startDateTime,
+          end: data.endDateTime || null,
           description: data.description || "",
-          country: data.country || "",
         });
       });
 
       const calendarEl = document.getElementById("calendar");
+      const popup = document.getElementById("eventPopup");
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
-        firstDay: 1, // Start week from Monday
+        firstDay: 1,
         headerToolbar: {
           left: "prev,next today",
           center: "title",
-          right: ""
+          right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
         events: events,
-        eventClick: function(info) {
-          const event = info.event.extendedProps;
-          document.getElementById("popupTitle").textContent = info.event.title;
-          document.getElementById("popupDescription").textContent = event.description;
-          document.getElementById("popupEndDate").textContent = info.event.start.toLocaleString();
-          document.getElementById("popupCountry").textContent = event.country;
-          document.getElementById("eventPopup").style.display = "block";
-          document.getElementById("popupOverlay").style.display = "block";
+        height: "100%",
+        eventMouseEnter: function(info) {
+          popup.innerHTML = `
+            <strong>${info.event.title}</strong><br/>
+            ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
+            ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
+            <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
+          `;
+          popup.style.display = "block";
+          popup.style.top = `${info.jsEvent.pageY + 10}px`;
+          popup.style.left = `${info.jsEvent.pageX + 10}px`;
+        },
+        eventMouseLeave: function() {
+          popup.style.display = "none";
         }
       });
 
       calendar.render();
     }
 
-    function closePopup() {
-      document.getElementById("eventPopup").style.display = "none";
-      document.getElementById("popupOverlay").style.display = "none";
-    }
-
     document.addEventListener("DOMContentLoaded", loadCalendar);
   </script>
 </body>
 </html>
+
