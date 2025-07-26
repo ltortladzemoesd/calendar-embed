@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upcoming Event Widget</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .event-card {
+      width: 280px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      background: white;
+    }
+
+    .event-header {
+      background-color: #36454F;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .event-header .month {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .event-header .day {
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+    .event-body {
+      padding: 15px;
+      text-align: center;
+    }
+
+    .event-body .weekday-time {
+      color: #555;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .event-body .title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .event-footer {
+      background-color: #36454F;
+      color: white;
+      text-align: center;
+      padding: 8px 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="event-card" id="eventCard">
+    <!-- Filled by JS -->
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
+      authDomain: "calendarapp-8ec62.firebaseapp.com",
+      projectId: "calendarapp-8ec62",
+      storageBucket: "calendarapp-8ec62.appspot.com",
+      messagingSenderId: "899658553643",
+      appId: "1:899658553643:web:c94eef191af72b04610d6e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function formatTimeRange(startDate, endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const options = { hour: '2-digit', minute: '2-digit' };
+      const weekday = start.toLocaleDateString('en-US', { weekday: 'long' });
+      return `${weekday}, ${start.toLocaleTimeString([], options)} - ${end.toLocaleTimeString([], options)}`;
+    }
+
+    async function loadNextEvent() {
+      const snapshot = await getDocs(collection(db, "events"));
+      const now = new Date();
+      const upcoming = [];
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const end = new Date(data.endDateTime);
+        if (end > now) {
+          upcoming.push({
+            title: data.title,
+            start: new Date(data.startDateTime),
+            end: end,
+            location: data.country || "",
+          });
+        }
+      });
+
+      if (upcoming.length === 0) return;
+      upcoming.sort((a, b) => a.start - b.start);
+      const next = upcoming[0];
+
+      const eventCard = document.getElementById("eventCard");
+      const month = next.start.toLocaleString('en-US', { month: 'short' });
+      const day = next.start.getDate();
+      const timeRange = formatTimeRange(next.start, next.end);
+
+      eventCard.innerHTML = `
+        <div class="event-header">
+          <div class="month">${month}</div>
+          <div class="day">${day}</div>
+        </div>
+        <div class="event-body">
+          <div class="weekday-time">${timeRange}</div>
+          <div class="title">${next.title}</div>
+        </div>
+        <div class="event-footer">
+          ${next.location || "Location"}
+        </div>
+      `;
+    }
+
+    document.addEventListener("DOMContentLoaded", loadNextEvent);
+  </script>
+</body>
+</html>
