@@ -185,7 +185,8 @@
         const newDescription = prompt("Edit description:", currentDescription);
         if (newDescription === null) return;
 
-        const newEndDate = prompt("Edit end date/time (YYYY-MM-DDTHH:MM):", currentEnd);
+        const formattedEnd = currentEnd ? new Date(currentEnd).toISOString().slice(0, 16) : "";
+        const newEndDate = prompt("Edit end date/time (YYYY-MM-DDTHH:MM):", formattedEnd);
         if (newEndDate === null) return;
 
         const newCountry = prompt("Edit country:", currentCountry);
