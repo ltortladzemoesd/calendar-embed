@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Read-Only Calendar</title>
+
+  <!-- FullCalendar CSS & JS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #d3d9d9;
+    }
+
+    #calendar {
+      height: 100vh;
+      width: 100%;
+      padding: 20px;
+      background: white;
+    }
+
+    .fc-event {
+      white-space: normal !important;
+      background-color: #36454F !important;
+      color: white !important;
+      font-weight: bold !important;
+      border: none !important;
+      padding: 2px 4px;
+      border-radius: 5px;
+      font-size: 0.85em;
+    }
+
+    #eventPopup {
+      display: none;
+      position: absolute;
+      z-index: 9999;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      max-width: 300px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="calendar"></div>
+  <div id="eventPopup"></div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
+      authDomain: "calendarapp-8ec62.firebaseapp.com",
+      projectId: "calendarapp-8ec62",
+      storageBucket: "calendarapp-8ec62.firebasestorage.app",
+      messagingSenderId: "899658553643",
+      appId: "1:899658553643:web:c94eef191af72b04610d6e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadCalendar() {
+      const events = [];
+      const snapshot = await getDocs(collection(db, "events"));
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        events.push({
+          title: data.title || "Untitled",
+          start: data.startDateTime,
+          end: data.endDateTime || null,
+          description: data.description || "",
+          country: data.country || ""
+        });
+      });
+
+      const calendarEl = document.getElementById("calendar");
+      const popup = document.getElementById("eventPopup");
+      let popupPinned = false;
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        firstDay: 1,
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay"
+        },
+        events: events,
+        height: "100%",
+        eventMouseEnter: function(info) {
+          if (popupPinned) return;
+          popup.innerHTML = `
+            <strong>${info.event.title}</strong><br/>
+            ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
+            ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
+            <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
+            <p><strong>Country:</strong> ${info.event.extendedProps.country || "N/A"}</p>
+          `;
+          popup.style.display = "block";
+          popup.style.top = `${info.jsEvent.pageY + 10}px`;
+          popup.style.left = `${info.jsEvent.pageX + 10}px`;
+        },
+        eventMouseLeave: function() {
+          if (!popupPinned) {
+            popup.style.display = "none";
+          }
+        },
+        eventClick: function(info) {
+          popupPinned = true;
+          popup.innerHTML = `
+            <strong>${info.event.title}</strong><br/>
+            ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
+            ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
+            <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
+            <p><strong>Country:</strong> ${info.event.extendedProps.country || "N/A"}</p>
+            <button onclick="closePopup()">Close</button>
+          `;
+          popup.style.display = "block";
+          popup.style.top = `${info.jsEvent.pageY + 10}px`;
+          popup.style.left = `${info.jsEvent.pageX + 10}px`;
+        }
+      });
+
+      calendar.render();
+
+      window.closePopup = function() {
+        popup.style.display = "none";
+        popupPinned = false;
+      };
+    }
+
+    document.addEventListener("DOMContentLoaded", loadCalendar);
+  </script>
+</body>
+</html>
