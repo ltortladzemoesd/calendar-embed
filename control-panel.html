@@ -3,75 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Add Event</title>
+  <title>Control Panel - Add Event</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #2c2c2c;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .form-container {
-      background: #444;
+      background: #CCD0CF;
       padding: 30px;
+    }
+
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 25px;
       border-radius: 20px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: white;
-    }
-
-    input, textarea {
+    input, textarea, button {
       width: 100%;
+      margin-top: 15px;
       padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      border: none;
       font-size: 16px;
-      background: #f8f8f8;
-      color: #000;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-sizing: border-box;
     }
 
     button {
-      width: 100%;
-      background: #0a192f;
+      background-color: #36454F;
       color: white;
-      border: none;
-      padding: 14px;
-      font-size: 16px;
-      border-radius: 12px;
-      cursor: pointer;
       font-weight: bold;
-    }
-
-    button:hover {
-      background: #112f4a;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="form-container">
+
+  <form id="eventForm">
     <h2>Add New Event</h2>
     <input type="text" id="title" placeholder="Event Title" required />
-    <textarea id="description" placeholder="Description"></textarea>
-    <input type="datetime-local" id="date" required />
-    <input type="email" id="email" placeholder="Your Email" />
+    <textarea id="description" placeholder="Event Description"></textarea>
+    <input type="datetime-local" id="endDateTime" required />
+    <textarea id="emails" placeholder="Collaborator Emails (comma-separated)"></textarea>
+    <button type="submit">Create Event</button>
+  </form>
 
-    <button onclick="createEvent()">Create Event</button>
-  </div>
-
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -88,40 +66,40 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function createEvent() {
+    const form = document.getElementById("eventForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
       const title = document.getElementById("title").value.trim();
       const description = document.getElementById("description").value.trim();
-      const rawDate = document.getElementById("date").value;
-      const email = document.getElementById("email").value.trim();
+      const endDateTimeInput = document.getElementById("endDateTime").value;
+      const emails = document.getElementById("emails").value.trim();
 
-      if (!title || !rawDate) {
-        alert("Please enter both a title and a date.");
+      if (!title || !endDateTimeInput) {
+        alert("Title and End Date/Time are required.");
         return;
       }
 
+      const endDateTime = new Date(endDateTimeInput).toISOString();
+      const startDateTime = endDateTime; // Same as end if no separate start field
+
       try {
-        const startDateTime = new Date(rawDate).toISOString();
         await addDoc(collection(db, "events"), {
           title,
           description,
           startDateTime,
-          endDateTime: startDateTime, // or null
-          email
+          endDateTime,
+          collaborators: emails ? emails.split(",").map(email => email.trim()) : []
         });
 
         alert("✅ Event successfully added!");
-
-        // Clear fields
-        document.getElementById("title").value = "";
-        document.getElementById("description").value = "";
-        document.getElementById("date").value = "";
-        document.getElementById("email").value = "";
-
-      } catch (error) {
-        console.error("Error adding event:", error);
-        alert("❌ Failed to add event. See console for details.");
+        form.reset();
+      } catch (err) {
+        console.error("❌ Error adding event:", err);
+        alert("Something went wrong while adding the event.");
       }
-    }
+    });
   </script>
 </body>
 </html>
