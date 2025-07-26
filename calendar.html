@@ -1,44 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event Calendar</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <style>
     body {
-      background-color: #d3dcdd;
       font-family: Arial, sans-serif;
+      background-color: #d8e3e4;
       margin: 0;
       padding: 0;
     }
 
     #calendar-container {
-      max-width: 100%;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: white;
+      max-width: 95%;
+      margin: 30px auto;
+      background: white;
       border-radius: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
     }
 
-    .fc .fc-daygrid-day.event-day {
-      background-color: #dcefff !important;
+    #calendar {
+      max-width: 100%;
+    }
+
+    .fc .fc-toolbar-title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .fc-button {
+      border-radius: 8px !important;
+      padding: 4px 12px;
+    }
+
+    .event-day {
+      background-color: #fef3c7 !important; /* light yellow highlight */
+    }
+
+    @media (max-width: 768px) {
+      #calendar-container {
+        padding: 10px;
+      }
+
+      .fc .fc-toolbar-title {
+        font-size: 18px;
+      }
     }
   </style>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css"/>
 </head>
 <body>
   <div id="calendar-container">
     <div id="calendar"></div>
   </div>
 
-  <!-- Firebase + FullCalendar -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
     import { Calendar } from "https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/+esm";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
       authDomain: "calendarapp-8ec62.firebaseapp.com",
@@ -51,45 +74,47 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const calendarEl = document.getElementById("calendar");
+    document.addEventListener('DOMContentLoaded', async () => {
+      const calendarEl = document.getElementById("calendar");
 
-    const calendar = new Calendar(calendarEl, {
-      initialView: "dayGridMonth",
-      firstDay: 1, // Start week on Monday
-      height: "auto",
-      eventDisplay: "block",
-      events: [],
-      eventDidMount: function(info) {
-        const eventDate = info.event.startStr;
-        const cell = document.querySelector(`[data-date="${eventDate}"]`);
-        if (cell) {
-          cell.classList.add("event-day");
-        }
-      }
-    });
-
-    calendar.render();
-
-    async function loadEvents() {
-      const eventsCol = collection(db, "events");
-      const snapshot = await getDocs(eventsCol);
-      const events = [];
-
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.title && data.endDateTime) {
-          events.push({
-            title: data.title,
-            start: data.endDateTime,
-            allDay: false,
-          });
+      const calendar = new Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        firstDay: 1, // Monday start
+        height: "auto",
+        eventDisplay: "block",
+        events: [],
+        eventDidMount: function(info) {
+          const eventDate = info.event.startStr;
+          const cell = document.querySelector(`[data-date="${eventDate}"]`);
+          if (cell) {
+            cell.classList.add("event-day");
+          }
         }
       });
 
-      calendar.addEventSource(events);
-    }
+      calendar.render();
 
-    loadEvents();
+      async function loadEvents() {
+        const eventsCol = collection(db, "events");
+        const snapshot = await getDocs(eventsCol);
+        const events = [];
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.title && data.endDateTime) {
+            events.push({
+              title: data.title,
+              start: data.endDateTime,
+              allDay: false,
+            });
+          }
+        });
+
+        calendar.addEventSource(events);
+      }
+
+      await loadEvents();
+    });
   </script>
 </body>
 </html>
