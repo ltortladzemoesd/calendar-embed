@@ -7,8 +7,6 @@
 
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
-
-  <!-- FullCalendar JS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
   <style>
@@ -32,7 +30,7 @@
 <body>
   <div id="calendar"></div>
 
-  <!-- Firebase + Firestore -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -49,20 +47,21 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const events = [];
+    // Wrap everything in an async function
+    async function loadCalendar() {
+      const events = [];
 
-    const snapshot = await getDocs(collection(db, "events"));
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      events.push({
-        title: data.title || "Untitled Event",
-        start: data.startDateTime,
-        end: data.endDateTime,
-        description: data.description || "",
+      const snapshot = await getDocs(collection(db, "events"));
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        events.push({
+          title: data.title || "Untitled",
+          start: data.startDateTime,
+          end: data.endDateTime,
+          description: data.description || "",
+        });
       });
-    });
 
-    document.addEventListener("DOMContentLoaded", function () {
       const calendarEl = document.getElementById("calendar");
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -76,7 +75,10 @@
       });
 
       calendar.render();
-    });
+    }
+
+    // Load the calendar once the DOM is ready
+    document.addEventListener("DOMContentLoaded", loadCalendar);
   </script>
 </body>
 </html>
