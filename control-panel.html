@@ -45,6 +45,7 @@
     <h2>Add New Event</h2>
     <input type="text" id="title" placeholder="Event Title" required />
     <textarea id="description" placeholder="Event Description"></textarea>
+    <input type="text" id="country" placeholder="Country" />
     <input type="datetime-local" id="endDateTime" required />
     <textarea id="emails" placeholder="Collaborator Emails (comma-separated)"></textarea>
     <button type="submit">Create Event</button>
@@ -58,7 +59,7 @@
       apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
       authDomain: "calendarapp-8ec62.firebaseapp.com",
       projectId: "calendarapp-8ec62",
-      storageBucket: "calendarapp-8ec62.appspot.com",
+      storageBucket: "calendarapp-8ec62.firebasestorage.app",
       messagingSenderId: "899658553643",
       appId: "1:899658553643:web:c94eef191af72b04610d6e"
     };
@@ -73,33 +74,32 @@
 
       const title = document.getElementById("title").value.trim();
       const description = document.getElementById("description").value.trim();
-      const endDateTimeInput = document.getElementById("endDateTime").value;
+      const country = document.getElementById("country").value.trim();
+      const endDateTime = document.getElementById("endDateTime").value;
       const emails = document.getElementById("emails").value.trim();
 
-      if (!title || !endDateTimeInput) {
+      if (!title || !endDateTime) {
         alert("Title and End Date/Time are required.");
         return;
       }
-
-      const endDateTime = new Date(endDateTimeInput).toISOString();
-      const startDateTime = endDateTime; // Same as end if no separate start field
 
       try {
         await addDoc(collection(db, "events"), {
           title,
           description,
-          startDateTime,
+          country,
           endDateTime,
-          collaborators: emails ? emails.split(",").map(email => email.trim()) : []
+          collaborators: emails.split(",").map(email => email.trim())
         });
 
-        alert("✅ Event successfully added!");
+        alert("Event successfully added!");
         form.reset();
       } catch (err) {
-        console.error("❌ Error adding event:", err);
-        alert("Something went wrong while adding the event.");
+        console.error("Error adding event:", err);
+        alert("Something went wrong!");
       }
     });
   </script>
 </body>
 </html>
+
