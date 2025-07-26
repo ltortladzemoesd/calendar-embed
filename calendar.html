@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calendar</title>
 
   <!-- FullCalendar CSS & JS -->
@@ -19,44 +19,40 @@
     }
 
     #calendar {
-      height: 100vh;
-      width: 100%;
-      padding: 20px;
+      height: 100%;
+      max-width: 1200px;
+      margin: auto;
       background: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .fc-daygrid-day {
+      word-wrap: break-word;
     }
 
     .fc-event {
-      white-space: normal !important;
       background-color: #36454F !important;
       color: white !important;
       font-weight: bold !important;
       border: none !important;
       padding: 2px 4px;
       border-radius: 5px;
-      font-size: 0.85em;
     }
 
-    #eventPopup {
-      display: none;
-      position: absolute;
-      z-index: 9999;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-      padding: 15px;
-      max-width: 300px;
-      font-size: 14px;
+    .fc-popover {
+      z-index: 9999 !important;
     }
   </style>
 </head>
 <body>
   <div id="calendar"></div>
-  <div id="eventPopup"></div>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
@@ -71,23 +67,27 @@
     const db = getFirestore(app);
 
     async function loadCalendar() {
-      const events = [];
       const snapshot = await getDocs(collection(db, "events"));
+      const events = [];
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        console.log("Loaded Event:", data);
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (!data.endDateTime) return; // Skip invalid entries
+
         events.push({
-          title: data.title || "Untitled",
-          start: data.startDateTime,
-          end: data.endDateTime || null,
-          description: data.description || "",
+          id: docSnap.id,
+          title: data.title,
+          start: data.endDateTime,
+          end: data.endDateTime,
+          extendedProps: {
+            description: data.description || "",
+            country: data.country || "",
+            collaborators: data.collaborators || []
+          }
         });
       });
 
       const calendarEl = document.getElementById("calendar");
-      const popup = document.getElementById("eventPopup");
-
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
         firstDay: 1,
@@ -97,20 +97,26 @@
           right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
         events: events,
-        height: "100%",
-        eventMouseEnter: function(info) {
-          popup.innerHTML = `
-            <strong>${info.event.title}</strong><br/>
-            ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
-            ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
-            <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
+        eventClick: async function(info) {
+          const data = info.event.extendedProps;
+          const details = `
+Title: ${info.event.title}
+Description: ${data.description}
+Country: ${data.country}
+Collaborators: ${data.collaborators.join(", ") || "None"}
+Date/Time: ${info.event.start.toLocaleString()}
           `;
-          popup.style.display = "block";
-          popup.style.top = `${info.jsEvent.pageY + 10}px`;
-          popup.style.left = `${info.jsEvent.pageX + 10}px`;
-        },
-        eventMouseLeave: function() {
-          popup.style.display = "none";
+          const confirmDelete = confirm(details + "\n\nDo you want to delete this event?");
+          if (confirmDelete) {
+            try {
+              await deleteDoc(doc(db, "events", info.event.id));
+              info.event.remove();
+              alert("Event deleted.");
+            } catch (error) {
+              alert("Failed to delete event.");
+              console.error(error);
+            }
+          }
         }
       });
 
