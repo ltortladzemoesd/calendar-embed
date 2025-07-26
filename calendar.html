@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Event Calendar</title>
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <style>
     body {
       background-color: #d3dcdd;
@@ -14,7 +13,7 @@
     }
 
     #calendar-container {
-      max-width: 1200px;
+      max-width: 100%;
       margin: 40px auto;
       padding: 20px;
       background-color: white;
@@ -22,21 +21,18 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
-    #calendar {
-      max-width: 100%;
-    }
-
-    .fc-daygrid-day.event-day {
+    .fc .fc-daygrid-day.event-day {
       background-color: #dcefff !important;
     }
   </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css"/>
 </head>
 <body>
   <div id="calendar-container">
     <div id="calendar"></div>
   </div>
 
-  <!-- Firebase App (modular SDK) -->
+  <!-- Firebase + FullCalendar -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -59,33 +55,32 @@
 
     const calendar = new Calendar(calendarEl, {
       initialView: "dayGridMonth",
-      firstDay: 1, // Monday as start of week
+      firstDay: 1, // Start week on Monday
       height: "auto",
       eventDisplay: "block",
       events: [],
       eventDidMount: function(info) {
         const eventDate = info.event.startStr;
-        const dayCell = document.querySelector(`[data-date="${eventDate}"]`);
-        if (dayCell) {
-          dayCell.classList.add("event-day");
+        const cell = document.querySelector(`[data-date="${eventDate}"]`);
+        if (cell) {
+          cell.classList.add("event-day");
         }
-      },
+      }
     });
 
     calendar.render();
 
     async function loadEvents() {
       const eventsCol = collection(db, "events");
-      const eventsSnapshot = await getDocs(eventsCol);
-
+      const snapshot = await getDocs(eventsCol);
       const events = [];
 
-      eventsSnapshot.forEach((doc) => {
+      snapshot.forEach((doc) => {
         const data = doc.data();
         if (data.title && data.endDateTime) {
           events.push({
             title: data.title,
-            start: data.endDateTime, // ISO format required
+            start: data.endDateTime,
             allDay: false,
           });
         }
