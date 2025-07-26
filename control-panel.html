@@ -29,6 +29,7 @@
     h2 {
       text-align: center;
       margin-bottom: 20px;
+      color: white;
     }
 
     input, textarea {
@@ -38,6 +39,8 @@
       border-radius: 10px;
       border: none;
       font-size: 16px;
+      background: #f8f8f8;
+      color: #000;
     }
 
     button {
@@ -96,27 +99,27 @@
         return;
       }
 
-      // Format the datetime to ISO 8601 (e.g., 2025-07-28T16:00)
-      const startDateTime = new Date(rawDate).toISOString();
-
       try {
+        const startDateTime = new Date(rawDate).toISOString();
         await addDoc(collection(db, "events"), {
           title,
           description,
           startDateTime,
-          endDateTime: startDateTime, // optional, you can make it end later if you want
+          endDateTime: startDateTime, // or null
           email
         });
 
-        alert("Event successfully added!");
+        alert("✅ Event successfully added!");
+
+        // Clear fields
         document.getElementById("title").value = "";
         document.getElementById("description").value = "";
         document.getElementById("date").value = "";
         document.getElementById("email").value = "";
 
       } catch (error) {
-        console.error("Error adding document: ", error);
-        alert("Failed to add event.");
+        console.error("Error adding event:", error);
+        alert("❌ Failed to add event. See console for details.");
       }
     }
   </script>
