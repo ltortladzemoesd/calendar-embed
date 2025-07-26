@@ -47,6 +47,26 @@
       max-width: 300px;
       font-size: 14px;
     }
+
+    #eventPopup button {
+      margin-top: 10px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #eventPopup .delete-btn {
+      background: #d9534f;
+      color: white;
+    }
+
+    #eventPopup .close-btn {
+      background: #999;
+      color: white;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
@@ -56,7 +76,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
@@ -73,7 +93,6 @@
     async function loadCalendar() {
       const events = [];
       const snapshot = await getDocs(collection(db, "events"));
-
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
         events.push({
@@ -87,6 +106,7 @@
 
       const calendarEl = document.getElementById("calendar");
       const popup = document.getElementById("eventPopup");
+      let popupPinned = false;
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
@@ -99,6 +119,7 @@
         events: events,
         height: "100%",
         eventMouseEnter: function(info) {
+          if (popupPinned) return;
           popup.innerHTML = `
             <strong>${info.event.title}</strong><br/>
             ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
@@ -110,16 +131,19 @@
           popup.style.left = `${info.jsEvent.pageX + 10}px`;
         },
         eventMouseLeave: function() {
-          popup.style.display = "none";
+          if (!popupPinned) {
+            popup.style.display = "none";
+          }
         },
         eventClick: function(info) {
+          popupPinned = true;
           popup.innerHTML = `
             <strong>${info.event.title}</strong><br/>
             ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
             ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
             <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
-            <button style="margin-top:10px;padding:6px 10px;border:none;background:#d9534f;color:white;border-radius:5px;cursor:pointer;" onclick="deleteEvent('${info.event.id}')">Delete</button>
-            <button style="margin-left:10px;padding:6px 10px;border:none;background:#999;color:white;border-radius:5px;cursor:pointer;" onclick="document.getElementById('eventPopup').style.display='none'">Close</button>
+            <button class="delete-btn" onclick="deleteEvent('${info.event.id}')">Delete</button>
+            <button class="close-btn" onclick="closePopup()">Close</button>
           `;
           popup.style.display = "block";
           popup.style.top = `${info.jsEvent.pageY + 10}px`;
@@ -128,20 +152,28 @@
       });
 
       calendar.render();
-    }
 
-    window.deleteEvent = async function(eventId) {
-      try {
-        await deleteDoc(doc(db, "events", eventId));
-        alert("Event deleted successfully.");
-        location.reload();
-      } catch (err) {
-        console.error("Error deleting event:", err);
-        alert("Failed to delete event.");
-      }
-    };
+      // Add close handler globally
+      window.closePopup = function() {
+        popup.style.display = "none";
+        popupPinned = false;
+      };
+
+      // Add delete handler globally
+      window.deleteEvent = async function(eventId) {
+        try {
+          await deleteDoc(doc(db, "events", eventId));
+          alert("Event deleted successfully.");
+          location.reload();
+        } catch (err) {
+          console.error("Error deleting event:", err);
+          alert("Failed to delete event.");
+        }
+      };
+    }
 
     document.addEventListener("DOMContentLoaded", loadCalendar);
   </script>
 </body>
 </html>
+
