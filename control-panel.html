@@ -1,183 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Control Panel - Add Event</title>
+body {
+  font-family: 'Arial', sans-serif;
+  background: #d1d1d1;
+  margin: 0;
+  padding: 20px;
+}
 
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background: #d1d1d1;
-      margin: 0;
-      padding: 40px;
-    }
+.form-container {
+  background: #f9f9f9;
+  border-radius: 28px;
+  max-width: 1400px;
+  margin: auto;
+  padding: 30px;
+  box-sizing: border-box;
+}
 
-    .form-container {
-      background: #f9f9f9;
-      border-radius: 28px;
-      max-width: 1400px;
-      margin: auto;
-      padding: 40px;
-      box-sizing: border-box;
-    }
+.form-title {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 30px;
+  font-weight: bold;
+}
 
-    .form-title {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 30px;
-      font-weight: bold;
-    }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      align-items: end;
-    }
+label {
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: block;
+}
 
-    label {
-      font-weight: bold;
-      margin-bottom: 6px;
-      display: block;
-    }
+input, textarea {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  background: #ddd;
+  border: none;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
 
-    input, textarea {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      background: #ddd;
-      border: none;
-      border-radius: 20px;
-      box-sizing: border-box;
-    }
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
 
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
+.full-width {
+  grid-column: span 2;
+}
 
-    .full-width {
-      grid-column: span 2;
-    }
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
 
-    .button-wrapper {
-      display: flex;
-      justify-content: center;
-      margin-top: 30px;
-    }
+.submit-button {
+  padding: 16px 60px;
+  font-size: 18px;
+  background-color: #121212;
+  color: white;
+  border: none;
+  border-radius: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
 
-    .submit-button {
-      padding: 16px 60px;
-      font-size: 18px;
-      background-color: #121212;
-      color: white;
-      border: none;
-      border-radius: 40px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
+.submit-button:hover {
+  background-color: #2c2c2c;
+}
 
-    .submit-button:hover {
-      background-color: #2c2c2c;
-    }
+/* 🔧 Mobile Fixes */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
 
-    @media (max-width: 768px) {
-      .full-width {
-        grid-column: span 1;
-      }
+  .form-container {
+    padding: 20px;
+    border-radius: 20px;
+  }
 
-      .submit-button {
-        width: 100%;
-      }
-    }
-  </style>
-</head>
-<body>
+  .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+  }
 
-  <div class="form-container">
-    <h2 class="form-title">Add New Event</h2>
-    <form id="eventForm">
-      <div class="form-grid">
-        <div>
-          <label for="title">Event Title *</label>
-          <input type="text" id="title" required />
-        </div>
-        <div>
-          <label for="country">Country *</label>
-          <input type="text" id="country" required />
-        </div>
-        <div>
-          <label for="endDateTime">Date & Time *</label>
-          <input type="datetime-local" id="endDateTime" required />
-        </div>
-        <div>
-          <label for="emails">Collaborator Emails</label>
-          <input type="text" id="emails" placeholder="Comma-separated" />
-        </div>
-        <div class="full-width">
-          <label for="description">Event Task</label>
-          <textarea id="description" placeholder="Type the task"></textarea>
-        </div>
-      </div>
+  .submit-button {
+    width: 100%;
+  }
 
-      <div class="button-wrapper">
-        <button type="submit" class="submit-button">Create Event</button>
-      </div>
-    </form>
-  </div>
+  .full-width {
+    grid-column: span 1 !important;
+  }
+}
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAVDXWUh4yHn_ZCC_YzW58EcohcDCAT-ZY",
-      authDomain: "calendarapp-8ec62.firebaseapp.com",
-      projectId: "calendarapp-8ec62",
-      storageBucket: "calendarapp-8ec62.firebasestorage.app",
-      messagingSenderId: "899658553643",
-      appId: "1:899658553643:web:c94eef191af72b04610d6e"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const form = document.getElementById("eventForm");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const title = document.getElementById("title").value.trim();
-      const description = document.getElementById("description").value.trim();
-      const endDateTime = document.getElementById("endDateTime").value;
-      const country = document.getElementById("country").value.trim();
-      const emails = document.getElementById("emails").value.trim();
-
-      if (!title || !endDateTime || !country) {
-        alert("Please fill in all required fields.");
-        return;
-      }
-
-      try {
-        await addDoc(collection(db, "events"), {
-          title,
-          description,
-          startDateTime: endDateTime,
-          endDateTime,
-          country,
-          collaborators: emails ? emails.split(",").map(email => email.trim()) : []
-        });
-
-        alert("Event successfully added!");
-        form.reset();
-      } catch (err) {
-        console.error("Error adding event:", err);
-        alert("Something went wrong!");
-      }
-    });
-  </script>
-
-</body>
-</html>
