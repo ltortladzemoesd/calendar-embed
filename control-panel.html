@@ -13,22 +13,33 @@
     }
 
     form {
-      max-width: 600px;
+      max-width: 900px;
       margin: auto;
       background: white;
-      padding: 25px;
+      padding: 30px;
       border-radius: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    form h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 26px;
     }
 
     input, textarea, button {
       width: 100%;
       margin-top: 15px;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 10px;
       box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
     }
 
     button {
@@ -36,6 +47,11 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #2c3a45;
     }
   </style>
 </head>
@@ -87,7 +103,7 @@
         await addDoc(collection(db, "events"), {
           title,
           description,
-          startDateTime: endDateTime, // Use end time as start
+          startDateTime: endDateTime,
           endDateTime,
           country,
           collaborators: emails ? emails.split(",").map(email => email.trim()) : []
@@ -103,5 +119,4 @@
   </script>
 </body>
 </html>
-
 
