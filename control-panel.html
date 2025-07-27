@@ -16,7 +16,7 @@
     .form-container {
       background: #f9f9f9;
       border-radius: 28px;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: auto;
       padding: 40px;
       box-sizing: border-box;
@@ -26,17 +26,20 @@
       text-align: center;
       font-size: 28px;
       margin-bottom: 30px;
+      font-weight: bold;
     }
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 20px;
+      align-items: end;
     }
 
     label {
       font-weight: bold;
       margin-bottom: 6px;
+      display: block;
     }
 
     input, textarea {
@@ -45,7 +48,7 @@
       font-size: 16px;
       background: #ddd;
       border: none;
-      border-radius: 14px;
+      border-radius: 20px;
       box-sizing: border-box;
     }
 
@@ -58,9 +61,14 @@
       grid-column: span 2;
     }
 
+    .button-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
     .submit-button {
-      grid-column: span 2;
-      padding: 16px;
+      padding: 16px 60px;
       font-size: 18px;
       background-color: #121212;
       color: white;
@@ -81,7 +89,7 @@
       }
 
       .submit-button {
-        grid-column: span 1;
+        width: 100%;
       }
     }
   </style>
@@ -90,28 +98,33 @@
 
   <div class="form-container">
     <h2 class="form-title">Add New Event</h2>
-    <form id="eventForm" class="form-grid">
-      <div>
-        <label for="title">Event Title *</label>
-        <input type="text" id="title" required />
+    <form id="eventForm">
+      <div class="form-grid">
+        <div>
+          <label for="title">Event Title *</label>
+          <input type="text" id="title" required />
+        </div>
+        <div>
+          <label for="country">Country *</label>
+          <input type="text" id="country" required />
+        </div>
+        <div>
+          <label for="endDateTime">Date & Time *</label>
+          <input type="datetime-local" id="endDateTime" required />
+        </div>
+        <div>
+          <label for="emails">Collaborator Emails</label>
+          <input type="text" id="emails" placeholder="Comma-separated" />
+        </div>
+        <div class="full-width">
+          <label for="description">Event Task</label>
+          <textarea id="description" placeholder="Type the task"></textarea>
+        </div>
       </div>
-      <div>
-        <label for="country">Country *</label>
-        <input type="text" id="country" required />
+
+      <div class="button-wrapper">
+        <button type="submit" class="submit-button">Create Event</button>
       </div>
-      <div>
-        <label for="endDateTime">Date & Time *</label>
-        <input type="datetime-local" id="endDateTime" required />
-      </div>
-      <div>
-        <label for="emails">Collaborator Emails</label>
-        <input type="text" id="emails" placeholder="Comma-separated" />
-      </div>
-      <div class="full-width">
-        <label for="description">Event Description</label>
-        <textarea id="description" placeholder="Leave us a message..."></textarea>
-      </div>
-      <button type="submit" class="submit-button">Create Event</button>
     </form>
   </div>
 
