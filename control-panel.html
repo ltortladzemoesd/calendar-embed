@@ -30,6 +30,7 @@
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
       align-items: end;
+      margin-bottom: 30px;
     }
     label {
       font-weight: bold;
@@ -53,7 +54,6 @@
     .event-task-container {
       display: flex;
       gap: 20px;
-      grid-column: span 2;
     }
     .event-task-container > div {
       flex: 1;
@@ -96,7 +96,6 @@
       }
       .event-task-container {
         flex-direction: column;
-        grid-column: span 1 !important;
       }
     }
   </style>
@@ -127,7 +126,7 @@
         </div>
         <div>
           <label for="collaborators">Collaborator Emails</label>
-          <input type="text" id="collaborators" name="collaborators" placeholder="Comma-separated" />
+          <textarea id="collaborators" name="collaborators" placeholder="Comma-separated"></textarea>
         </div>
       </div>
 
