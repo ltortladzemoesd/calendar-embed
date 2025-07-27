@@ -72,6 +72,38 @@
       color: white;
       margin-left: 10px;
     }
+
+    /* Mobile calendar header fixes */
+    .fc .fc-toolbar {
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .fc-button {
+      font-size: 0.8rem !important;
+      padding: 4px 10px !important;
+      border-radius: 6px !important;
+    }
+
+    @media (max-width: 500px) {
+      .fc-toolbar-title {
+        font-size: 1.2rem !important;
+      }
+
+      .fc-button-group {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .fc-toolbar {
+        padding: 10px;
+      }
+
+      #calendar {
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -131,84 +163,4 @@
             ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
             ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
             <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
-            <p><strong>Country:</strong> ${info.event.extendedProps.country || "N/A"}</p>
-          `;
-          popup.style.display = "block";
-          popup.style.top = `${info.jsEvent.pageY + 10}px`;
-          popup.style.left = `${info.jsEvent.pageX + 10}px`;
-        },
-        eventMouseLeave: function() {
-          if (!popupPinned) {
-            popup.style.display = "none";
-          }
-        },
-        eventClick: function(info) {
-          popupPinned = true;
-          popup.innerHTML = `
-            <strong>${info.event.title}</strong><br/>
-            ${info.event.start ? `<em>${info.event.start.toLocaleString()}</em><br/>` : ""}
-            ${info.event.end ? `<em>to ${info.event.end.toLocaleString()}</em><br/>` : ""}
-            <p style="margin-top:10px;">${info.event.extendedProps.description || "No details available."}</p>
-            <p><strong>Country:</strong> ${info.event.extendedProps.country || "N/A"}</p>
-            <button class="edit-btn" onclick="editEvent('${info.event.id}', '${info.event.title}', '${info.event.extendedProps.description || ''}', '${info.event.end || ''}', '${info.event.extendedProps.country || ''}')">Edit</button>
-            <button class="delete-btn" onclick="deleteEvent('${info.event.id}')">Delete</button>
-            <button class="close-btn" onclick="closePopup()">Close</button>
-          `;
-          popup.style.display = "block";
-          popup.style.top = `${info.jsEvent.pageY + 10}px`;
-          popup.style.left = `${info.jsEvent.pageX + 10}px`;
-        }
-      });
-
-      calendar.render();
-
-      window.closePopup = function() {
-        popup.style.display = "none";
-        popupPinned = false;
-      };
-
-      window.deleteEvent = async function(eventId) {
-        try {
-          await deleteDoc(doc(db, "events", eventId));
-          alert("Event deleted successfully.");
-          location.reload();
-        } catch (err) {
-          console.error("Error deleting event:", err);
-          alert("Failed to delete event.");
-        }
-      };
-
-      window.editEvent = async function(eventId, currentTitle, currentDescription, currentEnd, currentCountry) {
-        const newTitle = prompt("Edit title:", currentTitle);
-        if (newTitle === null) return;
-
-        const newDescription = prompt("Edit description:", currentDescription);
-        if (newDescription === null) return;
-
-        const formattedEnd = currentEnd ? new Date(currentEnd).toISOString().slice(0, 16) : "";
-        const newEndDate = prompt("Edit end date/time (YYYY-MM-DDTHH:MM):", formattedEnd);
-        if (newEndDate === null) return;
-
-        const newCountry = prompt("Edit country:", currentCountry);
-        if (newCountry === null) return;
-
-        try {
-          await updateDoc(doc(db, "events", eventId), {
-            title: newTitle,
-            description: newDescription,
-            endDateTime: newEndDate,
-            country: newCountry
-          });
-          alert("Event updated.");
-          location.reload();
-        } catch (err) {
-          console.error("Update failed:", err);
-          alert("Update failed.");
-        }
-      };
-    }
-
-    document.addEventListener("DOMContentLoaded", loadCalendar);
-  </script>
-</body>
-</html>
+            <p><strong>Country:</strong> ${info.event.exte
